@@ -31,7 +31,7 @@ def ScrapeYahooNews():
     }
     
     # Iterate page index explicitly from 1 to 20
-    for page_index in range(1, 21):
+    for page_index in range(1, 7):
         url = f"https://www.yahoo.com/news/{page_index}"
         print(f"\n--- Requesting Yahoo News Page {page_index}/20: {url} ---")
         
@@ -112,7 +112,7 @@ def ScrapeYahooNews():
                     print(f"Error scraping article {article_url}: {e}")
                     
         # Delay between shifting pages
-        time.sleep(2)
+        time.sleep(0.5)
 
     print(f"\nScrape completed successfully! Extracted {article_id - 1} total records across 20 pages into {csv_file}")
 
