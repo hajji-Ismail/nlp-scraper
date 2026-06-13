@@ -1,5 +1,9 @@
+
+import nltk
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import spacy
 import joblib
+sia = SentimentIntensityAnalyzer()
 
 nlp = spacy.load("en_core_web_sm")
 
@@ -23,6 +27,27 @@ def Topic_detection(text):
     
    
    
+
+
+
+def analyze_sentiment(text):
+ 
+    
+    # 1. Compute the structural scores under the hood
+    scores = sia.polarity_scores(text)
+    compound = scores['compound']
+    
+    # 2. Apply our threshold conditions
+    if compound >= 0.05:
+        category = "positive"
+    elif compound <= -0.05:
+        category = "negative"
+    else:
+        category = "neutral"
+        
+    return category
+        
+    
         
     
 headline = "Apple Inc. acquires a new startup in London."
@@ -30,9 +55,7 @@ body = "The deal was finalized yesterday by Apple Inc. and DeepMind."
 
 # Combine or process separately
 full_document = f"{headline} {body}"
-detected_orgs = Topic_detection(full_document)
+detected_orgs = analyze_sentiment(full_document)
 
 print(f"Detected Companies: {detected_orgs}")
-
-
 
