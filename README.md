@@ -108,6 +108,52 @@ CSV file with NLP-enriched data sorted by scandal relevance. Top 10 articles fla
 - **Data Processing**: pandas, numpy
 - **Serialization**: joblib
 
+## Embeddings and Distance Metric Explanation
+
+### Choice of Embedding Model: `all-MiniLM-L6-v2`
+
+The project uses the **`all-MiniLM-L6-v2`** model from the Sentence-Transformers library for semantic text representation. This choice is motivated by:
+
+1. **Efficiency & Speed**: MiniLM is a lightweight, distilled model (~22MB) that produces 384-dimensional embeddings, making it fast for real-time inference without sacrificing semantic quality.
+
+2. **Semantic Quality**: Despite its small size, MiniLM achieves strong performance on semantic similarity tasks. It captures nuanced meanings in environmental crisis keywords effectively (e.g., distinguishing "oil spill" from "chemical contamination").
+
+3. **Proven Performance**: The model is trained on a diverse corpus of 215M sentence pairs, making it robust for detecting semantic relationships between crisis descriptions and environmental keywords.
+
+4. **Resource Constraints**: In production, lightweight models reduce computational overhead, memory footprint, and latency—critical for batch processing large article datasets.
+
+### Choice of Distance Metric: Cosine Similarity
+
+The scandal detection pipeline uses **cosine similarity** to measure semantic distance between article sentences and environmental crisis keywords. This choice reflects:
+
+1. **Vector Space Geometry**: Cosine similarity measures the angle between embedding vectors in high-dimensional space, which is ideal for normalized embeddings. It ranges from -1 (opposite) to 1 (identical), normalized to 0-1 for this use case.
+
+2. **Semantic Relevance**: Cosine similarity is invariant to vector magnitude, capturing semantic meaning rather than frequency. This prevents high-frequency crisis keywords from dominating the scoring.
+
+3. **Interpretability**: A cosine similarity score of 0.4+ indicates meaningful semantic overlap between article content and environmental crisis patterns, providing a clear threshold for scandal flagging.
+
+4. **Computational Efficiency**: Cosine similarity is computationally lightweight (dot product + normalization), enabling fast batch processing of thousands of articles.
+
+### Implementation Details
+
+- **Threshold**: Scandal detection triggers when cosine similarity ≥ 0.4 between an article sentence (containing a detected company) and environmental keywords.
+- **Aggregation**: The maximum similarity across all sentences mentioning a company is used to identify the most relevant environmental scandal signal.
+- **Keyword Set**: Five high-specificity crisis keywords ensure precision:
+  - "environmental pollution"
+  - "illegal deforestation"
+  - "toxic waste dumping"
+  - "oil spill disaster"
+  - "chemical river contamination"
+
+### Trade-offs and Alternatives
+
+| Approach | Pros | Cons | Why Not Used |
+|----------|------|------|-------------|
+| **Cosine Similarity** (Current) | Fast, interpretable, semantic-focused | Limited to normalized vectors | — (Selected) |
+| Euclidean Distance | Intuitive, common in ML | Magnitude-sensitive, slower | Inappropriate for normalized embeddings |
+| Dot Product | Fastest | Not normalized, varies with vector magnitude | Would require manual scaling |
+| Larger Models (e.g., all-mpnet-base-v2) | Higher semantic precision | 10x slower, higher memory (438MB) | Overkill for keyword matching; violates latency requirements |
+
 ## Notes
 
 - Article scraping includes 1-second delays between article fetches to respect server load
