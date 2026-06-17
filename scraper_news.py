@@ -31,7 +31,7 @@ def ScrapeYahooNews():
     }
     
     # Iterate page index explicitly from 1 to 20
-    for page_index in range(1, 7):
+    for page_index in range(1, 21):
         url = f"https://www.yahoo.com/news/{page_index}"
         print(f"\n--- Requesting Yahoo News Page {page_index}/20: {url} ---")
         
