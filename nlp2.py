@@ -92,21 +92,20 @@ def main():
     try : 
         with conn.cursor() as cursor :
 
-            input_path = "./data/newsdata.csv"
             output_path = "./results/enhanced_news.csv"
     
-            if not os.path.exists(input_path):
-                print(f"Error: Input dataset file not found at {input_path}")
-                return
+           
+            sql = "SELECT * FROM `news`"
+            cursor.execute(sql)
+            df = cursor.fetchall()
 
-            df = pd.read_csv(input_path)
     
             processed_records = []
     
             print(f"\nProcessing {len(df)} articles...\n")
     
-            for idx, row in df.iterrows():
-                uuid_val = row.get("unique ID")
+            for  row in df:
+                uuid_val = row.get("id")
                 url_val = row.get("URL")
                 date_val = row.get("date")
                 headline_val = str(row.get("headline", ""))
@@ -158,8 +157,8 @@ def main():
             processed_records.sort(key=lambda x: x["Scandal_distance"], reverse=True)
     
   
-            for idx in range(min(10, len(processed_records))):
-                processed_records[idx]["Top_10"] = True
+            for uuid_val in range(min(10, len(processed_records))):
+                processed_records[uuid_val]["Top_10"] = True
         
 
             output_df = pd.DataFrame(processed_records)
