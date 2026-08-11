@@ -1,60 +1,67 @@
-
-
-
-import csv
+import pymysql 
+import os 
+from dotenv import load_dotenv
 import time
 import requests
 from bs4 import BeautifulSoup
 from pathlib import Path
 
 def ScrapeYahooNews():
+    load_dotenv()
 
-    folder_path = Path("./data")
+    conn = pymysql.connect(
+        host= os.getenv("HOST"),
+        user= os.getenv("USER"),
+        password= os.getenv("PASSWORD"),
+        database=os.getenv("DB"),
+        cursorclass=pymysql.cursors.DictCursor
+    )
+    try :
+        with conn.cursor() as cursor :
+            sql = "CREATE TABLE IF NOT EXISTS news (id INT AUTO_INCREMENT PRIMARY KEY, URL VARCHAR(255), date VARCHAR(255), headline VARCHAR(255), `body of the article` LONGTEXT)"     
+            cursor.execute(sql)
+            conn.commit()
 
-    folder_path.mkdir(parents=True, exist_ok=True)
-    csv_file = "./data/newsdata.csv"
-    headers_csv = ["unique ID", "URL", "date", "headline", "body of the article"]
+
+        folder_path = Path("./data")
+
+        folder_path.mkdir(parents=True, exist_ok=True)
+        csv_file = "./data/newsdata.csv"
     
-    # Initialize the file and clear previous contents
-    with open(csv_file, mode='w', newline='', encoding='utf-8') as file:
-        writer = csv.writer(file)
-        writer.writerow(headers_csv)
-        
-    article_id = 1
-    seen_urls = set()
+    
+        article_id = 1
+        seen_urls = set()
    
-    request_headers = {
+        request_headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.9",
         "Connection": "keep-alive"
-    }
+        }
     
     # Iterate page index explicitly from 1 to 20
-    for page_index in range(1, 21):
-        url = f"https://www.yahoo.com/news/world/{page_index}"
-        print(f"\n--- Requesting Yahoo News Page {page_index}/20: {url} ---")
+        for page_index in range(1, 21):
+            url = f"https://www.yahoo.com/news/world/{page_index}"
+            print(f"\n--- Requesting Yahoo News Page {page_index}/20: {url} ---")
         
-        try:
-            response = requests.get(url, headers=request_headers, timeout=15)
-        except Exception as e:
-            print(f"Error fetching directory page {page_index}: {e}")
-            continue 
+            try:
+                response = requests.get(url, headers=request_headers, timeout=15)
+            except Exception as e:
+                print(f"Error fetching directory page {page_index}: {e}")
+                continue 
         
-        if response.status_code != 200:
-            print(f"Yahoo rejected page {page_index}. Status code: {response.status_code}")
-            continue
+            if response.status_code != 200:
+                print(f"Yahoo rejected page {page_index}. Status code: {response.status_code}")
+                continue
             
-        soup = BeautifulSoup(response.content, "html.parser")
-        articles = soup.find_all('li', attrs={'class': "list-none"})
+            soup = BeautifulSoup(response.content, "html.parser")
+            articles = soup.find_all('li', attrs={'class': "list-none"})
         
-        if not articles:
-            print(f"No articles found on page {page_index}.")
-            continue
+            if not articles:
+                print(f"No articles found on page {page_index}.")
+                continue
             
-        # Open CSV in append mode
-        with open(csv_file, mode='a', newline='', encoding='utf-8') as file:
-            writer = csv.writer(file)
+      
             
             for let in articles:
                 TitleLinkContainer = let.find("h3")
@@ -96,8 +103,12 @@ def ScrapeYahooNews():
                             article_body = "No content available"
                         
                         
-                        writer.writerow([article_id, article_url, timestamp, headline, article_body])
-                        
+                        with conn.cursor() as cursor :
+
+                            sql = "INSERT INTO news (`URL`, `date`, `headline`, `body of the article`) VALUES (%s, %s, %s, %s)"
+                            cursor.execute(sql, (article_url, timestamp, headline, article_body))
+                        conn.commit()
+                                                    
                         seen_urls.add(article_url)
                         article_id += 1
                         
@@ -109,8 +120,10 @@ def ScrapeYahooNews():
                     
         # Delay between shifting pages
         time.sleep(0.5)
+    finally:
+        conn.close()
+        
 
-    print(f"\nScrape completed successfully! Extracted {article_id - 1} total records across 20 pages into {csv_file}")
 
 # Execution
 ScrapeYahooNews()
