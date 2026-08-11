@@ -32,31 +32,31 @@ def ScrapeYahooNews():
     
     # Iterate page index explicitly from 1 to 20
     for page_index in range(1, 21):
-        url = f"https://www.yahoo.com/news/{page_index}"
+        url = f"https://www.yahoo.com/news/world/{page_index}"
         print(f"\n--- Requesting Yahoo News Page {page_index}/20: {url} ---")
         
         try:
             response = requests.get(url, headers=request_headers, timeout=15)
         except Exception as e:
             print(f"Error fetching directory page {page_index}: {e}")
-            continue # Try the next page if this one fails
+            continue 
         
         if response.status_code != 200:
             print(f"Yahoo rejected page {page_index}. Status code: {response.status_code}")
             continue
             
         soup = BeautifulSoup(response.content, "html.parser")
-        letters = soup.find_all('li', attrs={'class': "list-none"})
+        articles = soup.find_all('li', attrs={'class': "list-none"})
         
-        if not letters:
+        if not articles:
             print(f"No articles found on page {page_index}.")
             continue
             
-        # Open CSV in append mode to save records incrementally
+        # Open CSV in append mode
         with open(csv_file, mode='a', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
             
-            for let in letters:
+            for let in articles:
                 TitleLinkContainer = let.find("h3")
                 if not TitleLinkContainer:
                     continue
@@ -68,38 +68,34 @@ def ScrapeYahooNews():
                 headline = TitleLink.get_text(strip=True)
                 raw_link = TitleLink.get('href')
                 
-                # Format absolute URL path
+               
                 if raw_link.startswith('/'):
                     article_url = "https://www.yahoo.com" + raw_link
                 else:
                     article_url = raw_link
                     
-                # Deduplication check
                 if article_url in seen_urls:
                     continue
                 
                 print(f"Scraping ID {article_id}: {headline[:50]}...")
                 
-                # Fetch individual article contents
                 try:
-                    time.sleep(1)  # Throttling to respect Yahoo's servers
+                    time.sleep(1)  
                     maindata = requests.get(article_url, headers=request_headers, timeout=15)
                     
                     if maindata.status_code == 200:
                         soupmain = BeautifulSoup(maindata.content, "html.parser")
                         
-                        # Extract exact timestamp string
                         time_tag = soupmain.find("time")
                         timestamp = time_tag.get('datetime') if time_tag else "N/A"
                         
-                        # Extract full article text
                         paragraphs = soupmain.find_all("p")
                         article_body = " ".join([p.get_text(strip=True) for p in paragraphs if p.get_text(strip=True)])
                         
                         if not article_body:
                             article_body = "No content available"
                         
-                        # Write structured record live to CSV
+                        
                         writer.writerow([article_id, article_url, timestamp, headline, article_body])
                         
                         seen_urls.add(article_url)

@@ -7,14 +7,12 @@ import nltk
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from sentence_transformers import SentenceTransformer, util
 
-# --- 1. System & Resource Initializations ---
 print("Initializing pipeline models and resources...")
 nltk.download('vader_lexicon', quiet=True)
 sia = SentimentIntensityAnalyzer()
 nlp = spacy.load("en_core_web_sm")
 embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
-# High-specificity crisis keywords
 ENVIRONMENTAL_KEYWORDS = [
     "environmental pollution", 
     "illegal deforestation", 
@@ -30,7 +28,6 @@ TOPIC_MODEL_PATH = "./results/topic_classifier.pkl"
 loaded_pipeline = joblib.load(TOPIC_MODEL_PATH)
 
 
-# --- 2. Step Functions ---
 
 def detect_entities(text):
     doc = nlp(text)
@@ -103,7 +100,6 @@ def main():
         
         full_document = f"{headline_val} {body_val}"
         
-        print(f"Enriching {url_val}:")
         print("Cleaning document ...")
         
         print("---------- Detect entities ----------")

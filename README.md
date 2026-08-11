@@ -88,9 +88,6 @@ This processes the scraped articles and generates `results/enhanced_news.csv` wi
     └── topic_classifier.pkl # Pre-trained topic model
 ```
 
-## Environment Variables
-
-No environment variables required. All paths are relative to the project root.
 
 ## Output
 
@@ -163,4 +160,4 @@ The scandal detection pipeline uses **cosine similarity** to measure semantic di
 
 ## Author
 
-HAjji Ismail 
+Hajji Ismail 
