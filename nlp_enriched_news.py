@@ -6,6 +6,8 @@ import spacy
 import nltk
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from sentence_transformers import SentenceTransformer, util
+import sqlite3
+
 
 print("Initializing pipeline models and resources...")
 nltk.download('vader_lexicon', quiet=True)
@@ -78,15 +80,21 @@ def calculate_scandal_distance(article_body, target_companies):
 
 
 def main():
-    input_path = "./data/newsdata.csv"
+    input_path = "./data/newsdata.db"
     output_path = "./results/enhanced_news.csv"
     
     if not os.path.exists(input_path):
         print(f"Error: Input dataset file not found at {input_path}")
         return
+   
+    conn = sqlite3.connect("./data/newsdata.db")
+    conn.row_factory = sqlite3.Row
 
-    df = pd.read_csv(input_path)
-    
+    output_path = "./results/enhanced_news.csv"
+
+    df = pd.read_sql_query("SELECT * FROM news", conn)
+
+    df.to_csv(output_path, index=False)    
     processed_records = []
     
     print(f"\nProcessing {len(df)} articles...\n")

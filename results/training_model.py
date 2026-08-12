@@ -29,7 +29,6 @@ def generate_and_save_learning_curves(pipeline, X, Y):
         scoring='accuracy'
     )
     
-    # Calculate means and standard deviations
     train_mean = np.mean(train_scores, axis=1)
     train_std = np.std(train_scores, axis=1)
     test_mean = np.mean(test_scores, axis=1)
