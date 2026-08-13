@@ -89,8 +89,8 @@ def main():
    
     conn = sqlite3.connect("./data/newsdata.db")
     conn.row_factory = sqlite3.Row
+    
 
-    output_path = "./results/enhanced_news.csv"
 
     df = pd.read_sql_query("SELECT * FROM news", conn)
 
@@ -108,7 +108,6 @@ def main():
         
         full_document = f"{headline_val} {body_val}"
         
-        print("Cleaning document ...")
         
         print("---------- Detect entities ----------")
         orgs = detect_entities(full_document)
@@ -144,7 +143,7 @@ def main():
             "Topics": topics,
             "Sentiment": sentiment_score,
             "Scandal_distance": scandal_dist,
-            "Top_10": False # Set false initially; updated post-sorting below
+            "Top_10": False 
         }
         processed_records.append(record)
 

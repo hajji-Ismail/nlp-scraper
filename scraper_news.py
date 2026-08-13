@@ -9,14 +9,11 @@ def ScrapeYahooNews():
     folder_path = Path("./data")
         
     folder_path.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect("./data/newsdata.db")
+    cursor = conn.cursor()
+    sql = "CREATE TABLE IF NOT EXISTS news (id INTEGER PRIMARY KEY NOT NULL, URL TEXT, date TEXT, headline TEXT, `body of the article` TEXT )"
+    cursor.execute(sql)
 
-
-    
-
-
-   
-    
-    
     article_id = 1
     seen_urls = set()
    
